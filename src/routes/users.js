@@ -78,24 +78,22 @@ router.post('/:_id/exercises', async (req, res) => {
 router.get('/:_id/logs', async (req, res) => {
   try {
     const user = await User.findById(req.params._id)
-    
+
     if(!user) 
       return res.status(404).send({ message: 'User with given id not found' })
 
     const exercises = await Exercise.find({ userId: user._id })
 
-    let response = exercises.map(exercise => {
-      const temp = {
-        username: user.username,
-        _id:  user._id,
-        log: exercise
-      }
-      return temp
-    })
+    let response = {
+      username: user.username,
+      _id: user._id,
+      count: exercises.count,
+      log: exercises
+    }
 
     if(req.query.from) {
       const fromDate = new Date(req.query.from)
-      response = response.filter(obj => {
+      response.log = response.log.filter(obj => {
         const date = new Date(obj.log.date)
         return date >= fromDate
       })
@@ -103,14 +101,14 @@ router.get('/:_id/logs', async (req, res) => {
     
     if(req.query.to) {
       const toDate = new Date(req.query.to)
-      response = response.filter(obj => {
+      response.log = response.log.filter(obj => {
         const date = new Date(obj.log.date)
         return date <= toDate
       })
     }
 
     if(req.query.limit)
-      response = response.splice(0, req.query.limit)
+      response.log = response.log.splice(0, req.query.limit)
 
     res.status(200).send(response)
   }
